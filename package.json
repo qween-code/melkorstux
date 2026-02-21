@@ -1,35 +1,46 @@
 {
   "name": "talent-bridge",
-  "version": "1.0.0",
-  "description": "Referral-based job sharing platform connecting Turkish talent with global remote opportunities",
-  "main": "index.js",
-  "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "cd frontend && npm run build",
-    "build:backend": "cd backend && npm run build",
-    "start": "cd backend && npm start",
-    "setup": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "db:migrate": "cd backend && npm run db:migrate",
-    "db:seed": "cd backend && npm run db:seed"
+  "version": "2.0.0",
+  "description": "Production-ready referral job platform with Telegram/Discord bots, analytics, and automation",
+  "type": "module",
+  "main": "src/server.js",
+  "bin": {
+    "tb": "./src/cli/index.js"
   },
-  "keywords": [
-    "referral",
-    "jobs",
-    "remote-work",
-    "mercor",
-    "talent",
-    "recruitment"
-  ],
-  "author": "Turhan Hamza <turhanhamza@gmail.com>",
-  "license": "MIT",
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "cli": "node src/cli/index.js",
+    "bot:telegram": "node src/bots/telegram.js",
+    "bot:discord": "node src/bots/discord.js",
+    "db:init": "node src/db/init.js",
+    "db:seed": "node src/db/seed.js",
+    "cron": "node src/services/scheduler.js",
+    "setup": "npm install && npm run db:init && echo '✅ Setup complete'"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "better-sqlite3": "^11.6.0",
+    "cors": "^2.8.5",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.4.7",
+    "nanoid": "^5.0.9",
+    "date-fns": "^4.1.0",
+    "node-cron": "^3.0.3",
+    "axios": "^1.7.9",
+    "telegraf": "^4.16.3",
+    "discord.js": "^14.16.3",
+    "express-rate-limit": "^7.4.1",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "inquirer": "^12.3.0",
+    "cli-table3": "^0.6.5",
+    "open": "^10.1.0"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  }
+    "node": ">=18.0.0"
+  },
+  "author": "Turhan Hamza <turhanhamza@gmail.com>",
+  "license": "MIT"
 }

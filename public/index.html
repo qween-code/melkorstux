@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talent Bridge Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--primary:#2563eb;--success:#16a34a;--warn:#d97706;--danger:#dc2626;--radius:12px}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+a{color:var(--primary);text-decoration:none}
+button{cursor:pointer;border:none;font:inherit;border-radius:8px;padding:8px 16px;font-weight:500;transition:opacity .2s}
+button:hover{opacity:.85}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-sm{padding:4px 10px;font-size:.8rem}
+
+/* Layout */
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;position:fixed;height:100vh;overflow-y:auto}
+.sidebar h1{font-size:1.1rem;padding:0 20px 20px;color:var(--primary);border-bottom:1px solid var(--border);margin-bottom:12px}
+.sidebar a{display:block;padding:10px 20px;color:var(--muted);font-size:.9rem;font-weight:500;transition:all .15s}
+.sidebar a:hover,.sidebar a.active{color:var(--primary);background:#eff6ff}
+.main{margin-left:220px;flex:1;padding:24px;max-width:1200px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card h3{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.card .value{font-size:2rem;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+
+/* Table */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);font-size:.9rem}
+th{font-weight:600;color:var(--muted);font-size:.8rem;text-transform:uppercase}
+tr:hover td{background:#f8fafc}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.75rem;font-weight:600}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-yellow{background:#fef9c3;color:#854d0e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-gray{background:#f1f5f9;color:#475569}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:-2px}
+.tab{padding:8px 16px;font-size:.9rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:500}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* Form */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.85rem;font-weight:500;margin-bottom:4px;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font:inherit;font-size:.9rem}
+.form-group textarea{min-height:80px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--card);border-radius:var(--radius);padding:24px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal h2{margin-bottom:16px}
+
+.hidden{display:none!important}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{margin-left:0}
+  .form-row{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <h1>Talent Bridge</h1>
+    <a href="#" data-page="dashboard" class="active">Dashboard</a>
+    <a href="#" data-page="jobs">Jobs</a>
+    <a href="#" data-page="posts">Posts</a>
+    <a href="#" data-page="competitors">Competitors</a>
+    <a href="#" data-page="communities">Communities</a>
+    <a href="#" data-page="revenue">Revenue</a>
+    <a href="#" data-page="settings">Settings</a>
+  </nav>
+
+  <main class="main" id="content">
+    <p>Loading...</p>
+  </main>
+</div>
+
+<script>
+const API = '/api';
+
+// ─── STATE ────────────────────────────────────────────────
+let currentPage = 'dashboard';
+
+// ─── ROUTING ──────────────────────────────────────────────
+document.querySelectorAll('.sidebar a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    currentPage = a.dataset.page;
+    loadPage(currentPage);
+  });
+});
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  return res.json();
+}
+
+function $(sel) { return document.querySelector(sel); }
+const el = document.getElementById('content');
+
+// ─── PAGES ────────────────────────────────────────────────
+
+async function loadPage(page) {
+  switch (page) {
+    case 'dashboard': return renderDashboard();
+    case 'jobs': return renderJobs();
+    case 'posts': return renderPosts();
+    case 'competitors': return renderCompetitors();
+    case 'communities': return renderCommunities();
+    case 'revenue': return renderRevenue();
+    case 'settings': return renderSettings();
+  }
+}
+
+// ── DASHBOARD ────────────────────────────────────────────
+async function renderDashboard() {
+  const { data } = await api('/dashboard');
+  const j = data.jobs, p = data.posts, c = data.clicks, r = data.revenue;
+
+  el.innerHTML = `
+    <h2>Dashboard</h2>
+    <div class="stats">
+      <div class="card"><h3>Active Jobs</h3><div class="value">${j.active}</div></div>
+      <div class="card"><h3>Posts Sent</h3><div class="value">${p.sent}</div></div>
+      <div class="card"><h3>Clicks (30d)</h3><div class="value">${c.total}</div></div>
+      <div class="card"><h3>Revenue</h3><div class="value">$${r.total}</div></div>
+    </div>
+    <div class="card">
+      <h3>Today</h3>
+      <p>Posts today: <strong>${p.today}</strong></p>
+      <p>Pending revenue: <strong>$${r.pending}</strong></p>
+      <p>Total hires: <strong>${r.count}</strong></p>
+    </div>
+    <div class="card">
+      <h3>Top Clicked Jobs</h3>
+      <table>
+        <tr><th>Job</th><th>Company</th><th>Clicks</th></tr>
+        ${(c.topJobs||[]).map(j => `<tr><td>${j.title}</td><td>${j.company}</td><td>${j.clicks}</td></tr>`).join('')}
+        ${!c.topJobs?.length ? '<tr><td colspan="3" style="color:var(--muted)">No clicks yet</td></tr>' : ''}
+      </table>
+    </div>
+    <div class="card">
+      <h3>Posts by Channel</h3>
+      <table>
+        <tr><th>Channel</th><th>Posts Sent</th></tr>
+        ${(p.byChannel||[]).map(c => `<tr><td>${c.channel}</td><td>${c.c}</td></tr>`).join('')}
+        ${!p.byChannel?.length ? '<tr><td colspan="2" style="color:var(--muted)">No posts yet</td></tr>' : ''}
+      </table>
+    </div>
+  `;
+}
+
+// ── JOBS ─────────────────────────────────────────────────
+async function renderJobs() {
+  const { data: jobs } = await api('/jobs?status=active');
+  const { data: platforms } = await api('/platforms');
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2>Jobs (${jobs.length})</h2>
+      <button class="btn-primary" onclick="showAddJob()">+ Add Job</button>
+    </div>
+    <table>
+      <tr><th>Title</th><th>Company</th><th>Salary</th><th>Platform</th><th>Priority</th><th>Actions</th></tr>
+      ${jobs.map(j => `
+        <tr>
+          <td><strong>${j.title}</strong><br><small style="color:var(--muted)">${(j.tech_stack||[]).slice(0,3).join(', ')}</small></td>
+          <td>${j.company}</td>
+          <td>${j.salary_min && j.salary_max ? '$'+j.salary_min+'-'+j.salary_max+'/'+j.salary_period : 'N/A'}</td>
+          <td><span class="badge badge-blue">${j.platform_name||j.platform_id}</span></td>
+          <td>${'⭐'.repeat(j.priority)}</td>
+          <td>
+            <button class="btn-primary btn-sm" onclick="postJob('${j.id}','telegram')">TG</button>
+            <button class="btn-success btn-sm" onclick="postJob('${j.id}','discord')">DC</button>
+            <button class="btn-warn btn-sm" onclick="generateContent('${j.id}')">Gen</button>
+          </td>
+        </tr>
+      `).join('')}
+      ${!jobs.length ? '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:40px">No active jobs. Click "+ Add Job" to get started.</td></tr>' : ''}
+    </table>
+    <div id="modal-container"></div>
+  `;
+
+  // Store platforms globally for the form
+  window._platforms = platforms;
+}
+
+window.showAddJob = function() {
+  const platforms = window._platforms || [];
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-bg" onclick="if(event.target===this)this.remove()">
+      <div class="modal">
+        <h2>Add New Job</h2>
+        <form onsubmit="submitJob(event)">
+          <div class="form-row">
+            <div class="form-group"><label>Title *</label><input name="title" required placeholder="Senior ML Engineer"></div>
+            <div class="form-group"><label>Company *</label><input name="company" required placeholder="Anthropic"></div>
+          </div>
+          <div class="form-group"><label>Description</label><textarea name="description" placeholder="Job description..."></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>Salary Min</label><input name="salary_min" type="number" placeholder="80"></div>
+            <div class="form-group"><label>Salary Max</label><input name="salary_max" type="number" placeholder="150"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Platform</label>
+              <select name="platform_id">${platforms.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select>
+            </div>
+            <div class="form-group"><label>Experience</label>
+              <select name="experience"><option value="any">Any</option><option value="junior">Junior</option><option value="mid" selected>Mid</option><option value="senior">Senior</option><option value="lead">Lead</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Tech Stack (comma separated)</label><input name="tech_stack" placeholder="Python, PyTorch, AWS"></div>
+          <div class="form-group"><label>Apply URL *</label><input name="apply_url" required placeholder="https://work.mercor.com/jobs/..."></div>
+          <div class="form-row">
+            <div class="form-group"><label>Location</label><input name="location" value="Remote - Worldwide"></div>
+            <div class="form-group"><label>Priority (0-5)</label><input name="priority" type="number" value="3" min="0" max="5"></div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+            <button type="button" style="background:var(--border)" onclick="this.closest('.modal-bg').remove()">Cancel</button>
+            <button type="submit" class="btn-primary">Save Job</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+};
+
+window.submitJob = async function(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd);
+  data.salary_min = data.salary_min ? Number(data.salary_min) : null;
+  data.salary_max = data.salary_max ? Number(data.salary_max) : null;
+  data.priority = Number(data.priority) || 0;
+  data.tech_stack = data.tech_stack ? data.tech_stack.split(',').map(s => s.trim()).filter(Boolean) : [];
+  data.requirements = [];
+  data.benefits = [];
+
+  const res = await api('/jobs', { method: 'POST', body: data });
+  if (res.ok) {
+    document.querySelector('.modal-bg')?.remove();
+    renderJobs();
+  } else {
+    alert('Error: ' + res.error);
+  }
+};
+
+window.postJob = async function(jobId, channel) {
+  const res = await api(`/post/${channel}`, { method: 'POST', body: { job_id: jobId } });
+  alert(res.ok ? `Posted to ${channel}!` : `Error: ${res.error}`);
+};
+
+window.generateContent = async function(jobId) {
+  const templates = await api('/content/templates');
+  const channels = Object.keys(templates.data);
+  const channel = prompt('Channel? (' + channels.join(', ') + ')', 'telegram');
+  if (!channel) return;
+  const tpls = templates.data[channel];
+  const tpl = prompt('Template? (' + tpls.join(', ') + ')', tpls[0]);
+  if (!tpl) return;
+
+  const res = await api('/content/generate', { method: 'POST', body: { job_id: jobId, channel, template: tpl } });
+  if (res.ok) {
+    const content = res.data.content;
+    // Show in a modal for copy
+    document.getElementById('modal-container').innerHTML = `
+      <div class="modal-bg" onclick="if(event.target===this)this.remove()">
+        <div class="modal">
+          <h2>Generated Content (${channel})</h2>
+          <textarea style="width:100%;min-height:300px;font-family:monospace;font-size:.85rem;padding:12px">${typeof content === 'string' ? content : JSON.stringify(content, null, 2)}</textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button style="background:var(--border)" onclick="this.closest('.modal-bg').remove()">Close</button>
+            <button class="btn-primary" onclick="navigator.clipboard.writeText(this.closest('.modal').querySelector('textarea').value);this.textContent='Copied!'">Copy</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    alert('Error: ' + res.error);
+  }
+};
+
+// ── POSTS ────────────────────────────────────────────────
+async function renderPosts() {
+  const { data: posts } = await api('/posts');
+  el.innerHTML = `
+    <h2>Posts History</h2>
+    <table>
+      <tr><th>Channel</th><th>Status</th><th>Message</th><th>Sent</th></tr>
+      ${posts.map(p => `
+        <tr>
+          <td><span class="badge badge-blue">${p.channel}</span></td>
+          <td><span class="badge ${p.status==='sent'?'badge-green':p.status==='failed'?'badge-red':'badge-yellow'}">${p.status}</span></td>
+          <td style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.message.slice(0,80)}...</td>
+          <td>${p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '-'}</td>
+        </tr>
+      `).join('')}
+      ${!posts.length ? '<tr><td colspan="4" style="color:var(--muted)">No posts yet</td></tr>' : ''}
+    </table>
+  `;
+}
+
+// ── COMPETITORS ──────────────────────────────────────────
+async function renderCompetitors() {
+  const { data: competitors } = await api('/competitors');
+  el.innerHTML = `
+    <h2>Competitor Analysis</h2>
+    <table>
+      <tr><th>Name</th><th>Type</th><th>Strengths</th><th>Weaknesses</th><th>Audience</th><th>Pricing</th></tr>
+      ${competitors.map(c => `
+        <tr>
+          <td><a href="${c.url}" target="_blank"><strong>${c.name}</strong></a></td>
+          <td><span class="badge ${c.type==='direct'?'badge-red':c.type==='indirect'?'badge-yellow':'badge-gray'}">${c.type}</span></td>
+          <td style="font-size:.85rem">${c.strengths}</td>
+          <td style="font-size:.85rem">${c.weaknesses}</td>
+          <td style="font-size:.85rem">${c.audience}</td>
+          <td>${c.pricing}</td>
+        </tr>
+      `).join('')}
+    </table>
+    <div class="card" style="margin-top:20px">
+      <h3>Competitive Advantage</h3>
+      <p style="margin-top:8px">Talent Bridge differentiates by:</p>
+      <ul style="margin:8px 0 0 20px;color:var(--muted)">
+        <li><strong>TR + Global:</strong> Turkish language content + English global reach</li>
+        <li><strong>Multi-channel:</strong> Telegram + Discord + Twitter + LinkedIn simultaneously</li>
+        <li><strong>Referral model:</strong> Commission-based, no upfront cost</li>
+        <li><strong>Automation:</strong> Bot-driven posting, cron scheduling</li>
+        <li><strong>Tracking:</strong> Click analytics per channel, conversion funnel</li>
+      </ul>
+    </div>
+  `;
+}
+
+// ── COMMUNITIES ──────────────────────────────────────────
+async function renderCommunities() {
+  const { data: communities } = await api('/communities');
+  el.innerHTML = `
+    <h2>Distribution Communities (${communities.length})</h2>
+    <table>
+      <tr><th>Channel</th><th>Name</th><th>Members</th><th>Language</th><th>Status</th><th>Rules</th></tr>
+      ${communities.map(c => `
+        <tr>
+          <td><span class="badge badge-blue">${c.channel}</span></td>
+          <td><a href="${c.url}" target="_blank">${c.name}</a></td>
+          <td>${c.members ? c.members.toLocaleString() : '-'}</td>
+          <td>${c.language.toUpperCase()}</td>
+          <td><span class="badge ${c.status==='active'?'badge-green':'badge-yellow'}">${c.status}</span></td>
+          <td style="font-size:.8rem;max-width:200px">${c.post_rules}</td>
+        </tr>
+      `).join('')}
+    </table>
+  `;
+}
+
+// ── REVENUE ──────────────────────────────────────────────
+async function renderRevenue() {
+  const { data: revenues } = await api('/revenue');
+  const { data: stats } = await api('/revenue/stats');
+  el.innerHTML = `
+    <h2>Revenue</h2>
+    <div class="stats">
+      <div class="card"><h3>Total</h3><div class="value">$${stats.total}</div></div>
+      <div class="card"><h3>Paid</h3><div class="value" style="color:var(--success)">$${stats.paid}</div></div>
+      <div class="card"><h3>Pending</h3><div class="value" style="color:var(--warn)">$${stats.pending}</div></div>
+      <div class="card"><h3>Hires</h3><div class="value">${stats.count}</div></div>
+    </div>
+    <table>
+      <tr><th>Platform</th><th>Candidate</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+      ${revenues.map(r => `
+        <tr>
+          <td>${r.platform_name||r.platform_id}</td>
+          <td>${r.candidate||'-'}</td>
+          <td><strong>$${r.amount}</strong></td>
+          <td><span class="badge ${r.status==='paid'?'badge-green':r.status==='pending'?'badge-yellow':'badge-red'}">${r.status}</span></td>
+          <td>${new Date(r.created_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('')}
+      ${!revenues.length ? '<tr><td colspan="5" style="color:var(--muted)">No revenue entries yet</td></tr>' : ''}
+    </table>
+  `;
+}
+
+// ── SETTINGS ─────────────────────────────────────────────
+async function renderSettings() {
+  const { data: settings } = await api('/settings');
+  el.innerHTML = `
+    <h2>Settings</h2>
+    <div class="card">
+      <table>
+        ${Object.entries(settings).map(([k,v]) => `
+          <tr>
+            <td style="font-weight:600;width:200px">${k}</td>
+            <td><input value="${v}" onchange="updateSetting('${k}', this.value)" style="border:1px solid var(--border);padding:4px 8px;border-radius:6px;width:100%"></td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+    <div class="card">
+      <h3>Quick Actions</h3>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="api('/referral/generate',{method:'POST',body:{platform_id:'mercor',apply_url:'https://work.mercor.com/explore'}}).then(r=>alert(JSON.stringify(r.data,null,2)))">Generate Mercor Referral Links</button>
+      </div>
+    </div>
+  `;
+}
+
+window.updateSetting = async function(key, value) {
+  await api(`/settings/${key}`, { method: 'PUT', body: { value } });
+};
+
+// ─── INIT ─────────────────────────────────────────────────
+loadPage('dashboard');
+</script>
+</body>
+</html>
