@@ -1,0 +1,382 @@
+:root {
+    --primary-color: #00a8ff;
+    --secondary-color: #ffffff;
+    --background-color: #1a1a1a;
+    --surface-color: #2c2c2c;
+    --text-color: #f0f0f0;
+    --font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    margin: 0;
+    line-height: 1.6;
+}
+
+header {
+    background: rgba(26, 26, 26, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 1rem 2rem;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--surface-color);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+}
+
+nav a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: var(--primary-color);
+}
+
+main {
+    padding-top: 80px; /* Header height */
+}
+
+#hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 80vh;
+    padding: 2rem;
+}
+
+#hero h1 {
+    font-size: 3.5rem;
+    max-width: 800px;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+#hero p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
+
+.cta-buttons .btn {
+    padding: 0.8rem 2rem;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 168, 255, 0.3);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+footer {
+    text-align: center;
+    padding: 2rem;
+    margin-top: 4rem;
+    border-top: 1px solid var(--surface-color);
+}
+
+/* Öne Çıkanlar ve Tabs */
+#one-cikanlar, #basari-hikayeleri {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 2rem;
+}
+
+#one-cikanlar h2, #basari-hikayeleri h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 500;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.tab-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.tab-link.active, .tab-link:hover {
+    color: var(--primary-color);
+}
+
+.tab-link.active::after {
+    transform: scaleX(1);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s;
+}
+
+.tab-content.active {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.job-card, .profile-card {
+    background: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.job-card:hover, .profile-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.job-card h3, .profile-card h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+/* Genel Sayfa Stilleri */
+#page-hero {
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: var(--surface-color);
+}
+
+#page-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+#job-listings .container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.filters {
+    flex-basis: 250px;
+    background: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    height: fit-content;
+}
+
+.jobs {
+    flex-grow: 1;
+}
+
+/* İşveren Sayfası Stilleri */
+#employer-features .container {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+    text-align: left;
+}
+
+.feature-item {
+    background: var(--surface-color);
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.feature-item h3 {
+    color: var(--primary-color);
+}
+
+.cta-center {
+    margin-top: 2rem;
+}
+
+/* Kaynak Merkezi Stilleri */
+#resources-grid .container {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.resource-card {
+    background: var(--surface-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.resource-card:hover {
+    transform: translateY(-5px);
+}
+
+.resource-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.resource-card h3,
+.resource-card p,
+.resource-card a {
+    padding: 0 1.5rem;
+}
+
+.resource-card h3 {
+    margin-top: 1rem;
+}
+
+.resource-card a {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Genel UI/UX İyileştirmeleri */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Scroll animasyonları için başlangıç durumu */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* Makale Sayfası Stilleri */
+.article-header {
+    text-align: center;
+    margin: 4rem 0;
+}
+
+.article-header h1 {
+    font-size: 3rem;
+}
+
+.article-header .meta {
+    color: #aaa;
+    font-style: italic;
+}
+
+.article-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.article-content h2 {
+    font-size: 2rem;
+    margin-top: 2.5rem;
+    color: var(--primary-color);
+}
+
+.article-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+/* Hakkımızda ve İletişim Bölümleri */
+#hakkimizda, #iletisim {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+#hakkimizda p, #iletisim p {
+    max-width: 800px;
+    margin: 1rem auto 2rem;
+}
